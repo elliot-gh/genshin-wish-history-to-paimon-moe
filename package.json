@@ -1,0 +1,9 @@
+{
+  "name": "hoyo-genshin-gacha-data-to-paimon-moe",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node tools/serve.js",
+    "test": "node --test"
+  }
+}

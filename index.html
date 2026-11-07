@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark light">
+    <meta name="description" content="Convert a HoYoverse customer-service Genshin wish history workbook to Paimon.moe JSON locally in your browser.">
+    <title>Genshin Wish Converter</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h2 id="convert-heading">Genshin Wish to Paimon.moe Converter</h2>
+      </header>
+
+      <section class="card" aria-labelledby="convert-heading">
+        <h2 id="convert-heading">Convert your history</h2>
+        <form id="converter-form">
+          <label for="workbook">1. Choose your HoYoverse workbook</label>
+          <input id="workbook" name="workbook" type="file" accept=".xlsx" required aria-describedby="workbook-help">
+          <p class="hint" id="workbook-help">English .xlsx wish logs with No., UID, Wish type, Wish award, and Wish time columns. Maximum 25 MiB.</p>
+
+          <fieldset id="timezone-controls" class="timezone-controls" aria-describedby="timezone-help">
+            <legend>2. Choose the output UTC offset</legend>
+            <div class="offset-fields">
+              <div>
+                <label for="timezone-sign">Sign</label>
+                <select id="timezone-sign" name="timezone-sign">
+                  <option value="+">+</option>
+                  <option value="-">-</option>
+                </select>
+              </div>
+              <div>
+                <label for="timezone-hours">Hours</label>
+                <input id="timezone-hours" name="timezone-hours" type="number" min="0" max="23" step="1" required>
+              </div>
+              <div>
+                <label for="timezone-minutes">Minutes</label>
+                <input id="timezone-minutes" name="timezone-minutes" type="number" min="0" max="59" step="1" required>
+              </div>
+            </div>
+          </fieldset>
+          <p class="hint" id="timezone-help">Defaults to your browser's current UTC offset. Choose + for ahead of UTC or - for behind UTC, then hours and minutes (for example, +05:45). Workbook times are UTC; this fixed offset is applied to every wish without daylight-saving adjustments.</p>
+
+          <button id="convert" type="submit">Convert workbook</button>
+        </form>
+        <p id="status" role="status" aria-live="polite"></p>
+        <p id="error" role="alert" hidden></p>
+      </section>
+
+      <section id="result" class="card" aria-labelledby="result-heading" hidden>
+        <h2 id="result-heading">Your history is ready</h2>
+        <p id="result-info"></p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th scope="col">Banner</th><th scope="col">Wishes</th><th scope="col">5-star pity</th><th scope="col">4-star pity</th></tr>
+            </thead>
+            <tbody id="summary"></tbody>
+          </table>
+        </div>
+        <p id="date-range" class="hint"></p>
+        <a id="download" class="button" download="paimon-moe-converted.json">Download Paimon.moe JSON</a>
+      </section>
+
+      <aside class="warning">
+        <h2>Back up Paimon.moe first</h2>
+        <p>This export contains only <code>wish-*</code> fields, including the workbook's UID. Paimon.moe's Settings &rarr; Import replaces <strong>all</strong> existing local data, not just wishes. Export a backup before importing; this file does not preserve characters, inventory, settings, or another account's data.</p>
+        <p>Paimon displays timestamps as supplied. Choose your account's server UTC offset if you need its banner timeline to align: Europe +01:00, America -05:00, or Asia +08:00. Other offsets can change how Paimon groups wishes near banner boundaries.</p>
+      </aside>
+
+      <footer>
+        <p>Metadata is read from <a href="https://github.com/MadeBaruna/paimon-moe/tree/main/src/data" target="_blank" rel="noreferrer">Paimon.moe's public source</a>, without executing its JavaScript. Not affiliated with HoYoverse or Paimon.moe.</p>
+      </footer>
+    </main>
+  </body>
+</html>
