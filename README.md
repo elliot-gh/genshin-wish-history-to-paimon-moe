@@ -6,8 +6,8 @@ Convert an English HoYoverse wish-history `.xlsx` workbook to Paimon.moe JSON lo
 
 1. Export a fresh JSON backup from **Paimon.moe Settings -> Export**.
 2. Select your workbook and choose the same UTC offset used by the backup's wish timestamps. Paimon JSON does not record that offset, so it cannot be detected automatically.
-3. Choose **Merge with existing JSON** to show the required **Import existing Paimon.moe JSON** input. Select the backup, then convert and download the merged JSON. Both files are read locally, never uploaded (only public item/banner metadata is fetched).
-4. Review **Merge changes** before importing into Paimon.moe: it shows existing, added, and overlapping wishes, before/after counts by banner, and whether pity/statistics were recalculated. Achievements, items/inventory, characters, and other backup data are shown as unchanged because this converter only updates wishes, not collection or inventory tracking. This summary appears only after a successful merge and is cleared when an input changes.
+3. Choose **Merge with existing Paimon.moe JSON** to show the required **Import existing Paimon.moe JSON** input. Select the backup, then click **Preview merge**. Both files are read locally, never uploaded (only public item/banner metadata is fetched).
+4. Review **Merge changes**: it shows existing, added, and overlapping wishes, before/after counts by banner, and whether pity/statistics were recalculated. Achievements, items/inventory, characters, and other backup data are shown as unchanged because this converter only updates wishes, not collection or inventory tracking. The preview is focused automatically; click **Download Paimon.moe JSON** below it to download directly, with no separate confirmation. Changing any input clears the preview and download, requiring a new preview.
 
 The workbook UID must match an account in the backup; matching secondary accounts are supported, and other accounts and unrelated backup fields are preserved. Backups with existing main-account wishes but no UID are rejected to prevent mixing accounts. Both inputs have a 25 MiB limit.
 

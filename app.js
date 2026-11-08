@@ -19,6 +19,8 @@ const result = document.querySelector("#result");
 const mergeDiff = document.querySelector("#merge-diff");
 const mergeDiffInfo = document.querySelector("#merge-diff-info");
 const mergeChanges = document.querySelector("#merge-changes");
+const mergeDiffHeading = document.querySelector("#merge-diff-heading");
+const mergePreviewHelp = document.querySelector("#merge-preview-help");
 const download = document.querySelector("#download");
 let downloadUrl;
 
@@ -31,6 +33,8 @@ function updateExportMode() {
   existingJsonControls.hidden = !mergeMode.checked;
   existingJson.disabled = !mergeMode.checked;
   existingJson.required = mergeMode.checked;
+  mergePreviewHelp.hidden = !mergeMode.checked;
+  button.textContent = mergeMode.checked ? "Preview merge" : "Convert workbook";
 }
 
 updateExportMode();
@@ -40,6 +44,7 @@ function clearResult() {
   if (downloadUrl) URL.revokeObjectURL(downloadUrl);
   downloadUrl = undefined;
   download.removeAttribute("href");
+  download.hidden = true;
   result.hidden = true;
   mergeDiff.hidden = true;
   mergeDiffInfo.textContent = "";
@@ -123,8 +128,16 @@ form.addEventListener("submit", async (event) => {
     document.querySelector("#date-range").textContent = `History: ${times[0]} to ${times.at(-1)} (${zone}). Character Event Wish 1 and 2 share pity; their original codes are preserved.`;
     downloadUrl = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2) + "\n"], { type: "application/json" }));
     download.href = downloadUrl;
+    download.hidden = false;
     result.hidden = false;
-    status.textContent = `${existingData ? "Merge" : "Conversion"} complete. Download your JSON below.`;
+    document.querySelector("#result-heading").textContent = existingData ? "Review your merged history" : "Your history is ready";
+    if (existingData) {
+      status.textContent = "Merge preview ready. Review the changes below, then download your JSON.";
+      mergeDiffHeading.focus();
+      mergeDiff.scrollIntoView({ block: "start" });
+    } else {
+      status.textContent = "Conversion complete. Download your JSON below.";
+    }
   } catch (cause) {
     console.error("Wish conversion failed:", cause);
     error.textContent = cause.message;

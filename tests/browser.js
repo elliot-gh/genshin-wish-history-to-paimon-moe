@@ -72,6 +72,9 @@ const tests = [
       form.requestSubmit();
       if (!document.querySelector("#timezone-controls").disabled) throw new Error("Offset controls not disabled while converting");
       await waitForConversion(document);
+      if (document.querySelector("#download").hidden) {
+        throw new Error("New JSON download is not available");
+      }
       let data = await (await originalFetch(document.querySelector("#download").href)).json();
       if (data["wish-counter-standard"].pulls[0].time !== "2024-01-01 13:45:00" ||
           !document.querySelector("#result-info").textContent.includes("UTC+05:45")) throw new Error("Incorrect positive offset");
@@ -90,7 +93,7 @@ const tests = [
       frame.remove();
     }
   }],
-  ["JSON mode toggles import visibility and validation, merges locally, and restores controls", async () => {
+  ["JSON merge previews offer direct one-click downloads and reset when inputs change", async () => {
     const frame = document.createElement("iframe");
     const loaded = new Promise((resolve) => frame.addEventListener("load", resolve, { once: true }));
     frame.src = "../index.html";
@@ -124,6 +127,7 @@ const tests = [
       const importControls = document.querySelector("#existing-json-controls");
       const importInput = document.querySelector("#existing-json");
       const diff = document.querySelector("#merge-diff");
+      const download = document.querySelector("#download");
       const assertMergeDiff = (before, after, added, overlaps) => {
         const expected = `${before} existing + ${added} added = ${after} merged wishes. ${overlaps} overlapping wishes kept from the backup, not added again.`;
         if (diff.hidden || document.querySelector("#merge-diff-info").textContent !== expected) {
@@ -139,6 +143,15 @@ const tests = [
             changes.get("Wish pity / statistics") !== (added ? "Recalculated for banners with added wishes" : "Unchanged (no new wishes)")) {
           throw new Error("Incorrect banner or statistics diff");
         }
+        if (download.hidden || !download.hasAttribute("href") ||
+            document.activeElement !== document.querySelector("#merge-diff-heading")) {
+          throw new Error("Merge download unavailable or preview not focused");
+        }
+        if (document.querySelector("#confirm-merge") || download.tagName !== "A" ||
+            download.getAttribute("download") !== "paimon-moe-converted.json" ||
+            !(diff.compareDocumentPosition(download) & child.Node.DOCUMENT_POSITION_FOLLOWING)) {
+          throw new Error("Download is not a direct link below the merge preview");
+        }
       };
       if (!newMode.checked || mergeMode.checked || !importControls.hidden || !importInput.disabled ||
           importInput.required || !form.checkValidity() || !diff.hidden) throw new Error("Incorrect default new-JSON mode");
@@ -146,6 +159,8 @@ const tests = [
       if (importControls.hidden || importInput.disabled || !importInput.required || form.checkValidity()) {
         throw new Error("Merge mode does not show and require the import");
       }
+      if (document.querySelector("#convert").textContent !== "Preview merge" ||
+          document.querySelector("#merge-preview-help").hidden) throw new Error("Merge preview instructions missing");
       form.dispatchEvent(new child.Event("submit", { bubbles: true, cancelable: true }));
       await waitForError(document, /backup to merge/);
       const backup = convertWishes([wish(2, "Jean", "Standard Wish", "2023-12-31 08:00:00")], parseMetadata(...metadataSources), 0);
@@ -157,27 +172,35 @@ const tests = [
       form.requestSubmit();
       if (!importInput.disabled || !modeControls.disabled) throw new Error("JSON mode controls not disabled during conversion");
       await waitForConversion(document);
+      assertMergeDiff(1, 2, 1, 0);
+      document.querySelector("#timezone-minutes").dispatchEvent(new child.Event("input", { bubbles: true }));
+      if (!diff.hidden || !download.hidden || download.hasAttribute("href")) {
+        throw new Error("Changing inputs did not invalidate preview and download");
+      }
+      form.requestSubmit();
+      await waitForConversion(document);
+      assertMergeDiff(1, 2, 1, 0);
       let data = await (await originalFetch(document.querySelector("#download").href)).json();
       if (data["wish-counter-standard"].total !== 2 || data.inventory.mora !== 100 ||
           !data["wish-counter-setting"].manualInput ||
           !document.querySelector("#result-info").textContent.includes("1 new wishes added; 0 overlapping") ||
           !document.querySelector("#date-range").textContent.includes("2023-12-31")) throw new Error("Incorrect merged result");
-      assertMergeDiff(1, 2, 1, 0);
       if (JSON.stringify(data.achievements) !== JSON.stringify(backup.achievements) ||
           JSON.stringify(data.characters) !== JSON.stringify(backup.characters)) throw new Error("Preserved-data diff does not match export");
       if (importInput.disabled || modeControls.disabled || document.querySelector("#workbook").disabled ||
           form.hasAttribute("aria-busy")) throw new Error("Controls not restored");
       setFile("#existing-json", JSON.stringify(data), "merged.json");
       if (document.querySelector("#download").hasAttribute("href") || !diff.hidden ||
-          document.querySelector("#merge-changes").children.length || document.querySelector("#merge-diff-info").textContent) {
+          document.querySelector("#merge-changes").children.length || document.querySelector("#merge-diff-info").textContent ||
+          !download.hidden) {
         throw new Error("Stale download or diff after changing backup");
       }
       form.requestSubmit();
       await waitForConversion(document);
+      assertMergeDiff(2, 2, 0, 1);
       const repeated = await (await originalFetch(document.querySelector("#download").href)).json();
       if (JSON.stringify(repeated) !== JSON.stringify(data) ||
           !document.querySelector("#result-info").textContent.includes("0 new wishes added; 1 overlapping")) throw new Error("Overlap was not retained");
-      assertMergeDiff(2, 2, 0, 1);
       const secondaryBackup = { ...backup, "wish-uid": "899999999" };
       for (const [key, value] of Object.entries(data).filter(([key]) => key.startsWith("wish-"))) {
         secondaryBackup[`alt-${key}`] = value;
@@ -185,12 +208,12 @@ const tests = [
       setFile("#existing-json", JSON.stringify(secondaryBackup), "accounts.json");
       form.requestSubmit();
       await waitForConversion(document);
+      assertMergeDiff(2, 2, 0, 1);
       const accounts = await (await originalFetch(document.querySelector("#download").href)).json();
       if (accounts["wish-uid"] !== "899999999" || accounts["wish-counter-standard"].total !== 1 ||
           accounts["alt-wish-counter-standard"].total !== 2 ||
           !document.querySelector("#result-info").textContent.includes("2 wishes for UID 799999999") ||
           document.querySelectorAll("#summary tr")[1].children[1].textContent !== "2") throw new Error("Secondary account summary is incorrect");
-      assertMergeDiff(2, 2, 0, 1);
       setFile("#existing-json", "{", "invalid.json");
       form.requestSubmit();
       await waitForError(document, /valid JSON backup/);
@@ -205,9 +228,9 @@ const tests = [
       setFile("#existing-json", JSON.stringify(backup).padEnd(MAX_FILE_SIZE, " "), "limit.json");
       form.requestSubmit();
       await waitForConversion(document);
+      assertMergeDiff(1, 2, 1, 0);
       const atLimit = await (await originalFetch(document.querySelector("#download").href)).json();
       if (atLimit["wish-counter-standard"].total !== 2) throw new Error("JSON at the 25 MiB limit was not merged");
-      assertMergeDiff(1, 2, 1, 0);
       setFile("#existing-json", new Uint8Array(MAX_FILE_SIZE + 1), "large.json");
       form.requestSubmit();
       await waitForError(document, /25 MiB file limit/);
@@ -215,11 +238,13 @@ const tests = [
       if (!importControls.hidden || !importInput.disabled || importInput.required || !form.checkValidity()) {
         throw new Error("New mode did not hide and disable the selected backup");
       }
+      if (document.querySelector("#convert").textContent !== "Convert workbook" ||
+          !document.querySelector("#merge-preview-help").hidden) throw new Error("New mode still shows merge instructions");
       form.requestSubmit();
       await waitForConversion(document);
       data = await (await originalFetch(document.querySelector("#download").href)).json();
       if (data["wish-counter-standard"].total !== 1 || Object.hasOwn(data, "inventory") || !diff.hidden ||
-          document.querySelector("#merge-changes").children.length) throw new Error("Workbook-only export or hidden diff changed");
+          document.querySelector("#merge-changes").children.length || download.hidden) throw new Error("Workbook-only export or hidden diff changed");
       if (!importInput.disabled || modeControls.disabled) throw new Error("New mode controls not restored");
       setFile("#existing-json", JSON.stringify(backup), "backup.json");
       mergeMode.click();
@@ -227,9 +252,9 @@ const tests = [
           importInput.disabled || !importInput.required || !form.checkValidity()) throw new Error("Switching back to merge failed");
       form.requestSubmit();
       await waitForConversion(document);
+      assertMergeDiff(1, 2, 1, 0);
       data = await (await originalFetch(document.querySelector("#download").href)).json();
       if (data["wish-counter-standard"].total !== 2 || data.inventory.mora !== 100) throw new Error("Merge after switching modes failed");
-      assertMergeDiff(1, 2, 1, 0);
       if (requests.some((url) => !url.startsWith(METADATA_BASE))) throw new Error("Private data sent");
     } finally {
       frame.remove();
@@ -246,6 +271,9 @@ async function waitForError(document, pattern) {
   if (!pattern.test(document.querySelector("#error").textContent)) throw new Error(document.querySelector("#error").textContent);
   if (!document.querySelector("#merge-diff").hidden || document.querySelector("#merge-changes").children.length) {
     throw new Error("Stale merge diff after error");
+  }
+  if (!document.querySelector("#download").hidden || document.querySelector("#download").hasAttribute("href")) {
+    throw new Error("Download available after error");
   }
   if (document.querySelector("#existing-json").disabled || document.querySelector("#export-mode-controls").disabled ||
       document.querySelector("#timezone-controls").disabled ||

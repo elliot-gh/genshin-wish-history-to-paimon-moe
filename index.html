@@ -45,14 +45,14 @@
           <p class="hint" id="timezone-help">Defaults to your browser's current UTC offset. Choose + for ahead of UTC or - for behind UTC, then hours and minutes (for example, +05:45). Workbook times are UTC; this fixed offset is applied to every wish without daylight-saving adjustments.</p>
 
           <fieldset id="export-mode-controls" class="export-mode-controls">
-            <legend>3. Choose your JSON export</legend>
+            <legend>3. Choose your Paimon.moe export</legend>
             <label for="export-new">
               <input id="export-new" name="export-mode" type="radio" value="new" checked>
               Brand new JSON
             </label>
             <label for="export-merge">
               <input id="export-merge" name="export-mode" type="radio" value="merge">
-              Merge with existing JSON
+              Merge with existing JSON (double check for issues!)
             </label>
           </fieldset>
           <div id="existing-json-controls" hidden>
@@ -60,6 +60,7 @@
             <input id="existing-json" name="existing-json" type="file" accept=".json,application/json" disabled aria-describedby="existing-json-help">
             <p class="hint" id="existing-json-help">Choose a JSON backup from Paimon.moe Settings &rarr; Export to merge. Maximum 25 MiB; read locally, never uploaded. The workbook UID must match the backup account. Choose the same UTC offset as the backup's wish timestamps: JSON does not store their offset. Matching wishes keep the imported entry, including repeated copies within ten-pulls; merged pity and statistics are recalculated. Other backup data is preserved.</p>
           </div>
+          <p id="merge-preview-help" class="hint" hidden>Preview the merge changes first, then download the JSON with one click.</p>
 
           <button id="convert" type="submit">Convert workbook</button>
         </form>
@@ -71,7 +72,7 @@
         <h2 id="result-heading">Your history is ready</h2>
         <p id="result-info"></p>
         <section id="merge-diff" aria-labelledby="merge-diff-heading" hidden>
-          <h3 id="merge-diff-heading">Merge changes</h3>
+          <h3 id="merge-diff-heading" tabindex="-1">Merge changes</h3>
           <p id="merge-diff-info"></p>
           <div class="table-scroll">
             <table>
@@ -92,7 +93,7 @@
           </table>
         </div>
         <p id="date-range" class="hint"></p>
-        <a id="download" class="button" download="paimon-moe-converted.json">Download Paimon.moe JSON</a>
+        <a id="download" class="button" download="paimon-moe-converted.json" hidden>Download Paimon.moe JSON</a>
       </section>
 
       <aside class="warning">
