@@ -44,6 +44,23 @@
           </fieldset>
           <p class="hint" id="timezone-help">Defaults to your browser's current UTC offset. Choose + for ahead of UTC or - for behind UTC, then hours and minutes (for example, +05:45). Workbook times are UTC; this fixed offset is applied to every wish without daylight-saving adjustments.</p>
 
+          <fieldset id="export-mode-controls" class="export-mode-controls">
+            <legend>3. Choose your JSON export</legend>
+            <label for="export-new">
+              <input id="export-new" name="export-mode" type="radio" value="new" checked>
+              Brand new JSON
+            </label>
+            <label for="export-merge">
+              <input id="export-merge" name="export-mode" type="radio" value="merge">
+              Merge with existing JSON
+            </label>
+          </fieldset>
+          <div id="existing-json-controls" hidden>
+            <label for="existing-json">Import existing Paimon.moe JSON</label>
+            <input id="existing-json" name="existing-json" type="file" accept=".json,application/json" disabled aria-describedby="existing-json-help">
+            <p class="hint" id="existing-json-help">Choose a JSON backup from Paimon.moe Settings &rarr; Export to merge. Maximum 25 MiB; read locally, never uploaded. The workbook UID must match the backup account. Choose the same UTC offset as the backup's wish timestamps: JSON does not store their offset. Matching wishes keep the imported entry, including repeated copies within ten-pulls; merged pity and statistics are recalculated. Other backup data is preserved.</p>
+          </div>
+
           <button id="convert" type="submit">Convert workbook</button>
         </form>
         <p id="status" role="status" aria-live="polite"></p>
@@ -53,6 +70,19 @@
       <section id="result" class="card" aria-labelledby="result-heading" hidden>
         <h2 id="result-heading">Your history is ready</h2>
         <p id="result-info"></p>
+        <section id="merge-diff" aria-labelledby="merge-diff-heading" hidden>
+          <h3 id="merge-diff-heading">Merge changes</h3>
+          <p id="merge-diff-info"></p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th scope="col">Area</th><th scope="col">Change from backup</th></tr>
+              </thead>
+              <tbody id="merge-changes"></tbody>
+            </table>
+          </div>
+          <p class="hint">Only wish history is updated. Achievements, items, character tracking, and other backup data stay as they were; wish awards do not update your inventory or character collection.</p>
+        </section>
         <div class="table-scroll">
           <table>
             <thead>
@@ -67,7 +97,7 @@
 
       <aside class="warning">
         <h2>Back up Paimon.moe first</h2>
-        <p>This export contains only <code>wish-*</code> fields, including the workbook's UID. Paimon.moe's Settings &rarr; Import replaces <strong>all</strong> existing local data, not just wishes. Export a backup before importing; this file does not preserve characters, inventory, settings, or another account's data.</p>
+        <p>Paimon.moe's Settings &rarr; Import replaces <strong>all</strong> existing local data, not just wishes. Export a fresh backup before importing. Without an existing JSON, this export contains only <code>wish-*</code> fields and does not preserve characters, inventory, settings, or other accounts. With an existing JSON, these are preserved from that backup, and only the matching account's supported wish histories are merged.</p>
         <p>Paimon displays timestamps as supplied. Choose your account's server UTC offset if you need its banner timeline to align: Europe +01:00, America -05:00, or Asia +08:00. Other offsets can change how Paimon groups wishes near banner boundaries.</p>
       </aside>
 

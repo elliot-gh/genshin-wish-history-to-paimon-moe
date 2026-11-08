@@ -15,8 +15,10 @@ p { margin: 12px 0; }
 label { display: block; font-weight: 650; margin-top: 22px; margin-bottom: 8px; }
 input, select { width: 100%; padding: 12px; border: 1px solid #53677e; border-radius: 8px; background: #101822; color: inherit; font: inherit; }
 input::file-selector-button { background: #344356; color: #e7edf5; border: 0; border-radius: 4px; padding: 8px 12px; margin-right: 12px; cursor: pointer; }
-.timezone-controls { border: 0; padding: 0; margin: 22px 0 0; min-width: 0; }
-.timezone-controls legend { font-weight: 650; padding: 0; margin-bottom: 8px; }
+.timezone-controls, .export-mode-controls { border: 0; padding: 0; margin: 22px 0 0; min-width: 0; }
+.timezone-controls legend, .export-mode-controls legend { font-weight: 650; padding: 0; margin-bottom: 8px; }
+.export-mode-controls label { display: flex; align-items: center; gap: 10px; margin-top: 0; cursor: pointer; }
+.export-mode-controls input { width: auto; margin: 0; }
 .offset-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .offset-fields label { margin-top: 0; }
 .hint, footer { font-size: .85rem; color: #b9c5d5; }
@@ -34,6 +36,8 @@ table { border-collapse: collapse; width: 100%; margin: 20px 0; }
 th, td { text-align: right; border-bottom: 1px solid #344356; padding: 10px 8px; white-space: nowrap; }
 th:first-child, td:first-child { text-align: left; }
 th { color: #b9c5d5; font-size: .85rem; }
+#merge-diff th, #merge-diff td { text-align: left; white-space: normal; }
+#merge-diff td:first-child { width: 40%; }
 footer { border-top: 1px solid #344356; padding-top: 12px; }
 [hidden] { display: none !important; }
 @media (max-width: 520px) {
